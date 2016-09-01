@@ -246,17 +246,21 @@ public class Mle3dSet extends MleSet implements I3dSet
     public synchronized void attachRoles(MleRole parent, MleRole child)
             throws MleRuntimeException
     {
-        Mle3dRole parentR, childR;
-
         if ((parent != null) && (parent instanceof Mle3dRole) &&
             (child != null) && (child instanceof Mle3dRole))
         {
-            parentR = (Mle3dRole) parent;
-            childR = (Mle3dRole) child;
+            ((Mle3dRole) parent).addChild(child);
+        } else if ((parent == null) && (child != null) && (child instanceof Mle3dRole))
+        {
+            if (m_root == null) {
+                // Attach child as root of tree.
+                m_root = (Mle3dRole) child;
+            } else {
+                // Attach child to root.
+                m_root.addChild(child);
+            }
         } else
             throw new MleRuntimeException("Mle3dSet: Invalid input parameter.");
-
-        parentR.addChild(childR);
     }
 
     /**
