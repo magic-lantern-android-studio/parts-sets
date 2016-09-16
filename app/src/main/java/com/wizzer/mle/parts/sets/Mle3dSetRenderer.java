@@ -1,7 +1,6 @@
 package com.wizzer.mle.parts.sets;
 
 import com.wizzer.mle.parts.j3d.MleRenderEngine;
-import com.wizzer.mle.parts.roles.Mle3dRole;
 import com.wizzer.mle.parts.stages.Mle3dStage;
 
 /**
@@ -50,9 +49,7 @@ public class Mle3dSetRenderer extends MleRenderEngine
         // Get the Set from the client data.
         Mle3dSet theSet = (Mle3dSet) m_clientData;
 
-        // Get the root of the Role scene graph.
-        Mle3dRole root = theSet.m_root;
-        // And render the scene.
-        root.render();
+        // Nothing to do here since the set is currently being called to render from the
+        // stage (in GLSurfaceView), and not during the Set's phase.
     }
 }

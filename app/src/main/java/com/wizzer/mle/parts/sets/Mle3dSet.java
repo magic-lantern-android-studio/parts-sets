@@ -1,5 +1,8 @@
 package com.wizzer.mle.parts.sets;
 
+import android.opengl.GLES20;
+import android.opengl.Matrix;
+
 import com.wizzer.mle.math.MlVector2;
 import com.wizzer.mle.parts.j3d.min3d.Node;
 import com.wizzer.mle.parts.j3d.sets.I3dSet;
@@ -117,7 +120,7 @@ public class Mle3dSet extends MleSet implements I3dSet
         // Remember the task so we can dispose of it later.
         setRenderCBId(id);
 
-        // Create the offscreen buffer using the resize event callback handler.
+        // Create the view and projection matrices using the resize event callback handler.
         handleResizeEvent((Mle3dStage)theStage);
     }
 
@@ -304,6 +307,14 @@ public class Mle3dSet extends MleSet implements I3dSet
         m_renderCBId = id;
     }
 
+    /*
+     * Store the view matrix. This can be thought of as our camera. This matrix transforms
+     * world space to eye space; it positions things relative to our eye.
+     */
+    private float[] m_viewMatrix = new float[16];
+    /* Store the projection matrix. This is used to project the scene onto a 2D viewport. */
+    private float[] m_projectionMatrix = new float[16];
+
     /**
      * Handle the resize event.
      *
@@ -319,19 +330,53 @@ public class Mle3dSet extends MleSet implements I3dSet
         //         obtained from 3D set properties.
         MleSize size = theStage.getSize();
 
-        /* ToDo: Need to determine how to deal with the resize event.
-        // Get the Stage's offscreen buffer.
-        MleBitmap stageBuffer = theStage.getPixelBuffer();
+        // Position the eye behind the origin.
+        final float eyeX = 0.0f;
+        final float eyeY = 0.0f;
+        final float eyeZ = 1.5f;
 
-        // Clean up the old offscreen buffer.
-        if (this.m_imageBuffer != null)
-            this.m_imageBuffer.dispose();
+        // We are looking toward the distance.
+        final float lookX = 0.0f;
+        final float lookY = 0.0f;
+        final float lookZ = -5.0f;
 
-        // Create an offscreen buffer that shares the one used by the Stage.
-        this.m_imageBuffer = new MleBitmap(stageBuffer.getBitmap());
-        */
+        // Set our up vector. This is where our head would be pointing were we holding the camera.
+        final float upX = 0.0f;
+        final float upY = 1.0f;
+        final float upZ = 0.0f;
+
+        // Set the view matrix. This matrix can be said to represent the camera position.
+        // NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
+        // view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
+        Matrix.setLookAtM(m_viewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
+
+        // Set the OpenGL viewport to the same size as the surface.
+        GLES20.glViewport(0, 0, (int)size.getWidth(), (int)size.getHeight());
+
+        // Create a new perspective projection matrix. The height will stay the same
+        // while the width will vary as per aspect ratio.
+        final float ratio = (float) size.getWidth() / size.getHeight();
+        final float left = -ratio;
+        final float right = ratio;
+        final float bottom = -1.0f;
+        final float top = 1.0f;
+        final float near = 1.0f;
+        final float far = 10.0f;
+
+        // Set the projection matrix.
+        Matrix.frustumM(m_projectionMatrix, 0, left, right, bottom, top, near, far);
 
         return true;
+    }
+
+    /**
+     * Render the set.
+     */
+    @Override
+    public void render()
+    {
+        // Render the scene graph.
+        m_root.render();
     }
 
     // Camera position parameters.
