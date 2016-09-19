@@ -4,7 +4,6 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.wizzer.mle.math.MlVector2;
-import com.wizzer.mle.parts.j3d.min3d.Node;
 import com.wizzer.mle.parts.j3d.sets.I3dSet;
 import com.wizzer.mle.parts.roles.Mle3dRole;
 import com.wizzer.mle.parts.stages.Mle3dStage;
@@ -375,6 +374,14 @@ public class Mle3dSet extends MleSet implements I3dSet
     @Override
     public void render()
     {
+        // Set the projection matrix on the role (to be used during rendering).
+        m_root.setProjectionMatrix(m_projectionMatrix);
+        // Set the view matrix on the role (to be used during rendering).
+        m_root.setViewMatrix(m_viewMatrix);
+
+        // ToDo: place the projection and view (camera) matrices in the scene graph
+        // so that the role does not have to directly have a handle to these.
+
         // Render the scene graph.
         m_root.render();
     }
