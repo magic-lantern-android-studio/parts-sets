@@ -324,6 +324,9 @@ public class Mle3dSet extends MleSet implements I3dSet
      */
     public synchronized boolean handleResizeEvent(Mle3dStage theStage)
     {
+        // Don't make any OpenGL ES calls if the Stage is not ready.
+        if (! theStage.isReady()) return false;
+
         // Retrieve width and height of the Stage.
         // XXX --  This is not really correct; the width and height should be
         //         obtained from 3D set properties.
@@ -366,6 +369,17 @@ public class Mle3dSet extends MleSet implements I3dSet
         Matrix.frustumM(m_projectionMatrix, 0, left, right, bottom, top, near, far);
 
         return true;
+    }
+
+    /**
+     * Initialize rendering.
+     */
+    @Override
+    public void initRender()
+        throws MleRuntimeException
+    {
+        // Initialize the scene graph.
+        m_root.initRender();
     }
 
     /**
