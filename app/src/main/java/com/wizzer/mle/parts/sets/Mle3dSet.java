@@ -4,13 +4,13 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 
 import com.wizzer.mle.math.MlVector2;
+import com.wizzer.mle.parts.j3d.roles.I3dRole;
 import com.wizzer.mle.parts.j3d.sets.I3dSet;
-import com.wizzer.mle.parts.roles.Mle3dRole;
 import com.wizzer.mle.parts.stages.Mle3dStage;
 import com.wizzer.mle.runtime.MleTitle;
 import com.wizzer.mle.runtime.core.IMleCallbackId;
 import com.wizzer.mle.runtime.core.IMleProp;
-import com.wizzer.mle.runtime.core.MleRole;
+import com.wizzer.mle.runtime.core.IMleRole;
 import com.wizzer.mle.runtime.core.MleRuntimeException;
 import com.wizzer.mle.runtime.core.MleSet;
 import com.wizzer.mle.runtime.core.MleSize;
@@ -50,9 +50,9 @@ public class Mle3dSet extends MleSet implements I3dSet
     public MlVector2 size = new MlVector2();
 
     /**
-     * The <b>m_root</p> is the root of the scene graph.
+     * The the root of the role scene graph.
      */
-    protected Mle3dRole m_root = null;
+    protected I3dRole m_root = null;
 
     /**
      * This inner class is used to process resize events.
@@ -245,18 +245,18 @@ public class Mle3dSet extends MleSet implements I3dSet
      * @throws MleRuntimeException This exception is thrown if <b>parent</b>
      * or <b>child</b> is <b>null</b>.
      */
-    public synchronized void attachRoles(MleRole parent, MleRole child)
+    public synchronized void attachRoles(IMleRole parent, IMleRole child)
             throws MleRuntimeException
     {
-        if ((parent != null) && (parent instanceof Mle3dRole) &&
-            (child != null) && (child instanceof Mle3dRole))
+        if ((parent != null) && (parent instanceof I3dRole) &&
+            (child != null) && (child instanceof I3dRole))
         {
-            ((Mle3dRole) parent).addChild(child);
-        } else if ((parent == null) && (child != null) && (child instanceof Mle3dRole))
+            ((I3dRole) parent).addChild(child);
+        } else if ((parent == null) && (child != null) && (child instanceof I3dRole))
         {
             if (m_root == null) {
                 // Attach child as root of tree.
-                m_root = (Mle3dRole) child;
+                m_root = (I3dRole) child;
             } else {
                 // Attach child to root.
                 m_root.addChild(child);
@@ -273,13 +273,13 @@ public class Mle3dSet extends MleSet implements I3dSet
      * @throws MleRuntimeException This exception is thrown if <b>curR</b>
      * is <b>null</b>.
      */
-    public synchronized void detach(MleRole child)
+    public synchronized void detach(IMleRole child)
             throws MleRuntimeException
     {
-        Mle3dRole role;
+        I3dRole role;
 
-        if ((child != null) && (child instanceof Mle3dRole))
-            role = (Mle3dRole) child;
+        if ((child != null) && (child instanceof I3dRole))
+            role = (I3dRole) child;
         else
             throw new MleRuntimeException("Mle3dSet: Invalid input parameter.");
 
@@ -288,7 +288,7 @@ public class Mle3dSet extends MleSet implements I3dSet
 
         // Detach children.
         for (int i = 0; i < role.numChildren(); i++) {
-            MleRole next = role.getChildAt(i);
+            IMleRole next = role.getChildAt(i);
             this.detach(next);
         }
         role.clearChildren();
@@ -311,8 +311,31 @@ public class Mle3dSet extends MleSet implements I3dSet
      * world space to eye space; it positions things relative to our eye.
      */
     private float[] m_viewMatrix = new float[16];
+
     /* Store the projection matrix. This is used to project the scene onto a 2D viewport. */
     private float[] m_projectionMatrix = new float[16];
+
+    /**
+     * Retrieve the view matrix for the set.
+     *
+     * @return An array of floating-point values is returned containing the content of the
+     * 4x4 matrix.
+     */
+    public float[] getViewMatrix()
+    {
+        return m_viewMatrix;
+    }
+
+    /**
+     * Retrieve the project matrix for the set.
+     *
+     * @return An array of floating-point values is returned containing the content of the
+     * 4x4 matrix.
+     */
+    public float[] getProjectionMatrix()
+    {
+        return m_projectionMatrix;
+    }
 
     /**
      * Handle the resize event.
@@ -335,7 +358,7 @@ public class Mle3dSet extends MleSet implements I3dSet
         // Position the eye behind the origin.
         final float eyeX = 0.0f;
         final float eyeY = 0.0f;
-        final float eyeZ = 1.5f;
+        final float eyeZ = -0.5f; // 1.5
 
         // We are looking toward the distance.
         final float lookX = 0.0f;
@@ -368,11 +391,13 @@ public class Mle3dSet extends MleSet implements I3dSet
         // Set the projection matrix.
         Matrix.frustumM(m_projectionMatrix, 0, left, right, bottom, top, near, far);
 
+        // ToDo: place the projection and view (camera) matrices in the scene graph
+        // so that the role does not have to directly have a handle to these.
         return true;
     }
 
     /**
-     * Initialize rendering.
+     * Initialize rendering on the Set.
      */
     @Override
     public void initRender()
@@ -383,18 +408,14 @@ public class Mle3dSet extends MleSet implements I3dSet
     }
 
     /**
-     * Render the set.
+     * Render the Set.
      */
     @Override
     public void render()
+        throws MleRuntimeException
     {
-        // Set the projection matrix on the role (to be used during rendering).
-        m_root.setProjectionMatrix(m_projectionMatrix);
-        // Set the view matrix on the role (to be used during rendering).
-        m_root.setViewMatrix(m_viewMatrix);
-
-        // ToDo: place the projection and view (camera) matrices in the scene graph
-        // so that the role does not have to directly have a handle to these.
+        // Note: if required, the view and projection matrices may be obtained by the Role
+        // for rendering. Use getViewMatrix() and getProjectionMatrix, respectively.
 
         // Render the scene graph.
         m_root.render();

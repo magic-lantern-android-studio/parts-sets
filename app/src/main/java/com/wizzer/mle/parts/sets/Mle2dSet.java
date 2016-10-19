@@ -35,6 +35,7 @@ import java.io.IOException;
 
 // Import Magic Lantern classes.
 import com.wizzer.mle.runtime.MleTitle;
+import com.wizzer.mle.runtime.core.IMleRole;
 import com.wizzer.mle.runtime.core.MleSize;
 import com.wizzer.mle.runtime.core.IMleCallbackId;
 import com.wizzer.mle.runtime.core.MleRole;
@@ -280,16 +281,16 @@ public class Mle2dSet extends MleSet implements I2dSet
     }
 
     /**
-     * Attach <b>newR</b> after <b>curR</b>.  If curR is <b>null</b>,
+     * Attach <b>newR</b> after <b>prevR</b>.  If prevR is <b>null</b>,
 	 * newR is attached to the end of the list.
 	 * 
-	 * @param curR The Role to attach to. May be <b>null</b>
+	 * @param prevR The Role to attach to. May be <b>null</b>
 	 * @param newR The Role to attach.
 	 * 
 	 * @throws MleRuntimeException This exception is thrown if <b>newR</b>
 	 * is <b>null</b>.
 	 */
-    public synchronized void attachRoles(MleRole curR, MleRole newR)
+    public synchronized void attachRoles(IMleRole prevR, IMleRole newR)
     	throws MleRuntimeException
     {
         Mle2dRole currentRole, newRole;
@@ -299,10 +300,10 @@ public class Mle2dSet extends MleSet implements I2dSet
         
         newRole = (Mle2dRole)newR;
 
-        if (curR != null)
+        if (prevR != null)
     	{
     		// Attach after "curR" Role.
-    		currentRole = (Mle2dRole)curR;
+    		currentRole = (Mle2dRole)prevR;
 
     		newRole.m_next = currentRole.m_next;
     		newRole.m_prev = currentRole;
@@ -333,22 +334,22 @@ public class Mle2dSet extends MleSet implements I2dSet
     /**
      * Detach specified Role from the layer list.
      * 
-     * @param curR The Role to detach.
+     * @param role The Role to detach.
 	 * 
 	 * @throws MleRuntimeException This exception is thrown if <b>curR</b>
 	 * is <b>null</b>.
      */
-    public synchronized void detach(MleRole curR)
+    public synchronized void detach(IMleRole role)
     	throws MleRuntimeException
     {
-        Mle2dRole role;
+        Mle2dRole role2d;
 
-        if (curR == null)
+        if (role == null)
             throw new MleRuntimeException("Mle2dSet: Role may not be null.");
          
-        role = (Mle2dRole)curR;
+        role2d = (Mle2dRole)role;
 
-        if (role == m_headRole)
+        if (role2d == m_headRole)
     	{
     		if (m_headRole.m_next != null)
     			m_headRole.m_next.m_prev = null;
@@ -356,9 +357,9 @@ public class Mle2dSet extends MleSet implements I2dSet
     		
         } else
     	{
-    		role.m_prev.m_next = role.m_next;
-    		if (role.m_next != null)
-    			role.m_next.m_prev = role.m_prev;
+    		role2d.m_prev.m_next = role2d.m_next;
+    		if (role2d.m_next != null)
+    			role2d.m_next.m_prev = role2d.m_prev;
         }
     }
     
